@@ -13,6 +13,9 @@ import os
 import subprocess
 import tempfile
 import argparse
+import re
+import numpy as np
+from glob import glob
 from Bio import SeqIO
 from itertools import product
 from pathlib import Path
@@ -246,24 +249,48 @@ def gen_kmer_files(
                     identifier=f"{identifier}_complete",
                 )
 
-# def main():
-#     import sys
-#     if len(sys.argv) != 2:
-#         print("Usage: python script.py input.fasta.gz")
-#         sys.exit(1)
 
-#     fasta_file = sys.argv[1]
+def build_kmer_count_table(
+    counts_directory: Path,
+) -> tuple[list[str], np.ndarray]:
+    """
+    Convert output of `gen_kmer_files` (txt files) to a single numpy array of
+    counts and list of (file-based) identifiers.
 
-#     print("Creating complete kmer template...")
-#     template = create_complete_kmer_template(k=6)
-#     print(f"Template created with {len(template)} kmers")
+    Parameters
+    ----------
+    counts_directory : Path
+        Path to directory containing txt files.
 
-#     print(f"Processing {fasta_file}...")
-#     for seq_id, sequence in parse_fasta_gz(fasta_file):
-#         print(f"Processing sequence: {seq_id}")
-#         process_sequence(seq_id, sequence, template=template)
-
-#     print("All sequences processed!")
-
-# if __name__ == "__main__":
-#     main()
+    Returns
+    -------
+    list[str]
+        List of identifiers corresponding to count array.
+    np.ndarray
+        Array of kmer counts.
+    """
+    count_files = glob(str(counts_directory) + "/*.txt")
+    identifiers, gene_segment, nmers = map(np.array, zip(*(
+        re.search(r".*/([A-Za-z0-9.]+)_([A-Za-z]+)_([0-9]+)mers.txt", x).groups()
+        for x in count_files
+    )))
+    nmers = nmers.astype(int)
+    if len(np.unique(nmers)) != 1:
+        raise ValueError(
+            f"Multiple kmer lengths found for txt files in {counts_directory}\n"
+            f"Expected 1 kind of kmer, got '{np.unique(nmers).tolist()}"
+        )
+    if len(np.unique(gene_segment)) != 1:
+        raise ValueError(
+            f"Kmer files for multiple gene segments found in {counts_directory}\n"
+            f"Expected 1 type of segment, got '{np.unique(gene_segment).tolist()}"
+        )
+    kmer_counts = np.zeros((len(count_files), 4**np.unique(nmers).item()))
+    for idx, seq_f in enumerate(count_files):
+        kmer_count_row = np.loadtxt(
+            seq_f,
+            usecols=[1],
+            delimiter="\t",
+        )
+        kmer_counts[idx] = kmer_count_row
+    return identifiers.tolist(), kmer_counts
