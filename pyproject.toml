@@ -9,7 +9,7 @@ dependencies = [
 ]
 name = "kmer_gen"
 requires-python = ">=3.10,<3.13"
-version = "0.0.0"
+version = "0.1.0"
 description = "Simple repo to build kmers from fasta file sequences."
 readme = "README.md"
 
@@ -18,4 +18,4 @@ build-backend = "hatchling.build"
 requires = ["hatchling"]
 
 [tool.hatch.build.targets.wheel]
-packages = ["kmer_gen"]
+packages = ["src/kmer_gen"]
