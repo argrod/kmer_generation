@@ -149,33 +149,15 @@ def parse_fasta_gz(
     """
     if str(file_path).split(".")[-1] == "gz":
         with gzip.open(file_path, "rt") as f:
-            seq_id = None
-            sequence = []
-
-            for line in f:
-                line = line.strip()
-                if line.startswith(">"):
-                    if seq_id:  # Yield previous sequence
-                        yield seq_id, sequence
-                    seq_id = line[1:].split()[0]  # Get first part of header
-                    sequence = []
-                else:
-                    sequence.append(line)
-
-            if seq_id:  # Yield last sequence
+            for read in SeqIO.parse(f, "fasta"):
+                seq_id = read.id
+                sequence = read.seq
                 yield seq_id, sequence
     elif str(file_path).split(".")[-1] == "fa":
-        with open(file_path, "r") as f:
-            seq_id = []
-            sequence = []
-
-            fastas = []
-            for read in SeqIO.parse(file_path, "fasta"):
-                seq_id.append(read.id)
-                sequence.append(read.seq)
-
-            if seq_id:  # Yield last sequence
-                yield seq_id, sequence
+        for read in SeqIO.parse(file_path, "fasta"):
+            seq_id = read.id
+            sequence = read.seq
+            yield seq_id, sequence
 
 
 def gen_kmer_files(
