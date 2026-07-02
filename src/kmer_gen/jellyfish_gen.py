@@ -198,8 +198,6 @@ def gen_kmer_files(
     for seq_id, sequence in parse_fasta_gz(fasta_filepath):
         # create an identifier if details given
         if accession is None:
-            identifier = None
-        else:
             identifier = seq_id
         if seq_ids is None:
             run_sequence = True
