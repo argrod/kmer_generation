@@ -175,7 +175,7 @@ def parse_fasta_gz(
                 sequence.append(read.seq)
 
             if seq_id:  # Yield last sequence
-                yield seq_id, "".join(sequence)
+                yield seq_id, sequence
 
 
 def gen_kmer_files(
