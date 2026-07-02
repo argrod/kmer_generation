@@ -259,12 +259,6 @@ def gen_kmer_files(
                     identifier=f"{identifier}_complete",
                 )
 
-seq_id: str,
-    sequence: str,
-    kmer_size: int,
-    outdir: Path,
-    template: list[str] | None = None,
-    identifier: str | None = None,
 # def main():
 #     import sys
 #     if len(sys.argv) != 2:
