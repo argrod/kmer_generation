@@ -131,7 +131,7 @@ def process_sequence(
             f.write(f"{kmer}\t{observed_counts[kmer]}\n")
 
     print(
-        f"{kmer_size}mer counts calculated for {input_file}\n"
+        f"{kmer_size}mer counts calculated for {seq_id}\n"
         f"\tData saved at: {output_file}"
     )
 
@@ -166,12 +166,13 @@ def parse_fasta_gz(
                 yield seq_id, "".join(sequence)
     elif str(file_path).split(".")[-1] == "fa":
         with open(file_path, "r") as f:
-            seq_id = None
+            seq_id = []
             sequence = []
 
             fastas = []
             for read in SeqIO.parse(file_path, "fasta"):
-                fastas.append(read)
+                seq_id.append(read.id)
+                sequence.append(read.seq)
 
             if seq_id:  # Yield last sequence
                 yield seq_id, "".join(sequence)
@@ -179,9 +180,9 @@ def parse_fasta_gz(
 
 def gen_kmer_files(
     fasta_filepath: Path | str,
-    seq_ids: list[str],
     kmer_length: int,
     outdir: Path,
+    seq_ids: list[str] | None = None,
     accession: str | None = None,
     seq_subsets: dict[str, int | str] | None = None,
 ) -> None:
@@ -193,11 +194,13 @@ def gen_kmer_files(
         Species name.
     fasta_filepath : Path | str
         Path to fasta file.
-    seq_ids : list[str]
-        List of sequence IDs.
     kmer_length : int
         Desired length of kmers.
     outdir : Path
+        Output directory for kmer files.
+    seq_ids : list[str], optional
+        List of sequence IDs. If None, all kmers are calculated for all
+        sequences.
     accession : str | None
         Optional accession name. If None given, output named the same as
         sequence ID. Defaults to None.
@@ -216,12 +219,16 @@ def gen_kmer_files(
             identifier = None
         else:
             identifier = seq_id
-        if seq_id in seq_ids:
+        if seq_ids is None:
+            run_sequence = True
+        elif seq_id in seq_ids:
+            run_sequence = True
+        else:
+            run_sequence = False
+        if run_sequence:
             if seq_subsets is not None:
                 seq_subset = seq_subsets[seq_id]
-                for seq_sub_indices, seq_category in zip(
-                    seq_subset, ["upstream", "CDS", "downstream"]
-                ):
+                for seq_sub_indices, seq_category in zip(seq_subset, ["upstream", "CDS", "downstream"]):
                     if isinstance(seq_sub_indices[0], str):
                         if seq_sub_indices[0][0] == ":":
                             seq_sub_indices = [0, int(seq_sub_indices[0][1:])]
