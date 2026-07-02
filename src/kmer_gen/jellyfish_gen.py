@@ -156,14 +156,14 @@ def parse_fasta_gz(
                 line = line.strip()
                 if line.startswith(">"):
                     if seq_id:  # Yield previous sequence
-                        yield seq_id, "".join(sequence)
+                        yield seq_id, sequence
                     seq_id = line[1:].split()[0]  # Get first part of header
                     sequence = []
                 else:
                     sequence.append(line)
 
             if seq_id:  # Yield last sequence
-                yield seq_id, "".join(sequence)
+                yield seq_id, sequence
     elif str(file_path).split(".")[-1] == "fa":
         with open(file_path, "r") as f:
             seq_id = []
