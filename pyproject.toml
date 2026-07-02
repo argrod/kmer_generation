@@ -7,7 +7,7 @@ dependencies = [
     "numpy>=2.2.2",
     "biopython>=1.85",
 ]
-name = "amr_ai"
+name = "kmer_gen"
 requires-python = ">=3.10,<3.13"
 version = "0.0.0"
 description = "Simple repo to build kmers from fasta file sequences."
